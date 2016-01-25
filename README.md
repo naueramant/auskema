@@ -1,1 +1,1 @@
-An Aarhus University schedule reader for the terminal.
+Yet another Aarhus University schedule reader... but for the terminal!

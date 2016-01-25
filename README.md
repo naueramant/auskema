@@ -1,0 +1,1 @@
+An Aarhus University schedule reader for the terminal.

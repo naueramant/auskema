@@ -1,6 +1,8 @@
 #AuSkema
 Yet another Aarhus University schedule reader... but for the terminal!
 
+![alt tag](https://raw.githubusercontent.com/naueramant/auskema/master/res/screenshot.png)
+
 ## Installation
 
 ```sh

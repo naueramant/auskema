@@ -11,7 +11,9 @@ var Spinner = require('cli-spinner').Spinner;
 var prefs = require('./config.json');
 var pjson = require('./package.json');
 
- 
+//make cache dir
+fs.mkdirsSync(__dirname + '/cache/');
+
 var spinner = new Spinner('fetching schedule.. %s');
 spinner.setSpinnerString('|/-\\');
 

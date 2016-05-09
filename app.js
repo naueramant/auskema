@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+'use strict';
 
 //Import dependencies
 var http = require('http');

@@ -1,3 +1,5 @@
+'use strict';
+
 /*
  *	Endpoint for api
  */
@@ -22,12 +24,12 @@ exports.parseData = function(data) {
 
 
 /*
-	The parse method above should return a JSON object 
+	The parse method above should return a JSON object
 	with the follow scheme.
 	NOTE: This object should only contain the current
 	or relevant week.
 
-	
+
 		[
 			{
 				from: 12,
@@ -42,9 +44,9 @@ exports.parseData = function(data) {
 				text: 'Programming 101'
 			}
 		]
-	
 
-	In the above example the text for each time and day 
+
+	In the above example the text for each time and day
 	will be the current time. So the position in the array
 	of the day decides which time of day.
 

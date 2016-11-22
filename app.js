@@ -126,7 +126,18 @@ function printTable(json) {
 
     //Generate hour rows
     var hours = [];
-    for (var i = 8; i <= 16; i++) {
+    // Find first class start
+    var first = json.reduce(function(min, elem)
+    {
+        return Math.min(min, elem.from);
+    }, Number.POSITIVE_INFINITY);
+    // Find last class end
+    var last = json.reduce(function(max, elem)
+    {
+        return Math.max(max, elem.to);
+    }, Number.NEGATIVE_INFINITY);
+
+    for (var i = first; i < last; i++) {
         var digit = i;
         if (digit.length == 1)
             digit = '0' + digit;
@@ -137,7 +148,7 @@ function printTable(json) {
     //Insert coures
     for (var i = 0; i < json.length; i++) {
         for (var j = json[i].from; j < json[i].to; j++) {
-            (hours[j - 8])[json[i].day] = json[i].text;
+            (hours[j - first])[json[i].day] = json[i].text;
         }
     };
 

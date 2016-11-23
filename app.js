@@ -7,6 +7,7 @@ var Table = require('cli-table');
 var fs = require('fs-extra');
 var request = require('request');
 var Spinner = require('cli-spinner').Spinner;
+var options = require('commander');
 
 //Import preferences
 var prefs = require('./config.json');
@@ -18,20 +19,20 @@ fs.mkdirsSync(__dirname + '/cache/');
 var spinner = new Spinner('fetching schedule.. %s');
 spinner.setSpinnerString('|/-\\');
 
-var options = require('commander');
-options
-  .version(pjson.version)
-  .description(pjson.description + ".")
-  .usage('[options] <studentID>')
-  .option('-f, --force', 'Force download (even if cached)')
-  .option('-c, --clear-cache', 'Clear the schedule cache (no studentID required)');
+// Setup commandline arguments
+options.version(pjson.version)
+       .description(pjson.description + ".")
+       .usage('[options] <studentID>')
+       .option('-f, --force', 'Force download (even if cached)')
+       .option('-c, --clear-cache', 'Clear the schedule cache (no studentID required)');
 
+// Addition help
 options.on('--help', function()
 {
     console.log('  Examples:');
     console.log('');
     console.log('    $ auskema <studentID> \t\t# Fetches the schedule for the given id');
-    console.log('    $ auskema <studentID> --force \t# Fetches the schedule for the given id even if it is cached');
+    console.log('    $ auskema --force <studentID> \t# Fetches the schedule for the given id even if it is cached');
     console.log('    $ auskema --clear-cache \t\t# Clears the schedule cache');
     console.log('');
     console.log("NOTE: Further preferences can be changed in the config.json file in the app main folder");

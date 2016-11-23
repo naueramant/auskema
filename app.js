@@ -24,7 +24,7 @@ options
   .description(pjson.description + ".")
   .usage('[options] <studentID>')
   .option('-f, --force', 'Force download (even if cached)')
-  .option('-c, --clear_cache', 'Clear the schedule cache (no studentID required)');
+  .option('-c, --clear-cache', 'Clear the schedule cache (no studentID required)');
 
 options.on('--help', function()
 {
@@ -41,7 +41,7 @@ options.on('--help', function()
 
 options.parse(process.argv);
 
-if (options.clear_cache) {
+if (options.clearCache) {
     clearCache();
     return;
 }

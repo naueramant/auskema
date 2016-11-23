@@ -24,7 +24,8 @@ options.version(pjson.version)
        .description(pjson.description + ".")
        .usage('[options] <studentID>')
        .option('-f, --force', 'Force download (even if cached)')
-       .option('-c, --clear-cache', 'Clear the schedule cache (no studentID required)');
+       .option('-c, --clear-cache', 'Clear the schedule cache (no studentID required)')
+       .option('-w, --fit-width', 'Fit output schedule to console width');
 
 // Addition help
 options.on('--help', function()
@@ -113,7 +114,15 @@ function fetchSchedule(url, callback) {
 
 function printTable(json) {
 
-    var table = new Table(prefs.table_options);
+    var table_opt = prefs.table_options;
+    if(options.fitWidth)
+    {
+        var frame_width = 7; // 5xinternal_borders 2xouter_borders
+        var time_width = 7;  // -XX:XX-
+        var data_width = Math.floor((process.stdout.columns - frame_width - time_width) / 5);
+        table_opt.colWidths = [time_width,data_width,data_width,data_width,data_width,data_width];
+    }
+    var table = new Table(table_opt);
 
     // Generate sparse object representation, and find first and last lecture time
     var obj = {};

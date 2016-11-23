@@ -18,31 +18,43 @@ fs.mkdirsSync(__dirname + '/cache/');
 var spinner = new Spinner('fetching schedule.. %s');
 spinner.setSpinnerString('|/-\\');
 
-var parm1 = process.argv[2];
-var parm2 = process.argv[3];
+var options = require('commander');
+options
+  .version(pjson.version)
+  .description(pjson.description + ".")
+  .usage('[options] <studentID>')
+  .option('-f, --force', 'Force download (even if cached)')
+  .option('-c, --clear_cache', 'Clear the schedule cache (no studentID required)');
 
-if (parm1 == "--clear-cache") {
+options.on('--help', function()
+{
+    console.log('  Examples:');
+    console.log('');
+    console.log('    $ auskema <studentID> \t\t# Fetches the schedule for the given id');
+    console.log('    $ auskema <studentID> --force \t# Fetches the schedule for the given id even if it is cached');
+    console.log('    $ auskema --clear-cache \t\t# Clears the schedule cache');
+    console.log('');
+    console.log("NOTE: Further preferences can be changed in the config.json file in the app main folder");
+    console.log('--> By Nauer (Modified by Skeen)');
+    console.log('');
+});
+
+options.parse(process.argv);
+
+if (options.clear_cache) {
     clearCache();
     return;
 }
 
-if(parm1 == undefined){
-	printUsage();
-	return;
-}
-
 //Get student id from parm
-var studentId = parm1
-
-if (process.argv[3] == "--force")
-    var forceReCache = true;
+var studentId = (options.args[0] || '');
 
 //Check input and fetch schedule
 if (studentId.length >= prefs.studentid_min_length) {
     var source = getSource(prefs.default_source);
 
 
-    if (doesCacheExist(studentId) && !isCacheOutdated(studentId) && prefs.cache && !forceReCache) {
+    if (doesCacheExist(studentId) && !isCacheOutdated(studentId) && prefs.cache && !options.force) {
         printTable(source.parseData(readCache(studentId)));
         console.log(getTimeStamp() + ': ' + studentId + ' loaded from cache.');
     } else {
@@ -72,29 +84,11 @@ if (studentId.length >= prefs.studentid_min_length) {
     }
 
 } else if (studentId.length == 0) {
-    printUsage();
+    options.help();
 } else {
     console.warn(getTimeStamp() + ": Invalid student id.");
-    printUsage();
+    options.help();
 }
-
-/*
- *	Usage print
- */
-
-function printUsage() {
-	console.log("\nAuSkema version " + pjson.version + " by Nauer \n" + pjson.description + "\n");
-	console.log("Usage: auskema <studentID> <option>\n");
-	console.log("Where <studentID> is your au student id ex. 201512345\n");
-	console.log("And <option> can be one of:");
-	console.log("--force, --clear-cache\n");
-	console.log("auskema <studentID> \t\tFetches the schedule for the given id");
-	console.log("auskema <studentID> --force \tFetches the schedule for the given id even if it is cached");
-	console.log("auskema --clear-cache  \t\tclears the schedule cache\n");
-	console.log("NOTE: --clear-cache do not need a student id. Further preferences can be changed in the config.json file in the app main folder");
-
-}
-
 
 /*
  *	Helping methodes

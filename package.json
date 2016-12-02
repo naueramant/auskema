@@ -1,6 +1,6 @@
 {
   "name": "auskema",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "preferGlobal": "true",
   "description": "Shows a schedule for a given student id from Aarhus University",
   "main": "app.js",

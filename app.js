@@ -7,6 +7,7 @@ var Table = require('cli-table');
 var fs = require('fs-extra');
 var request = require('request');
 var Spinner = require('cli-spinner').Spinner;
+var options = require('commander');
 
 //Import preferences
 var prefs = require('./config.json');
@@ -18,31 +19,47 @@ fs.mkdirsSync(__dirname + '/cache/');
 var spinner = new Spinner('fetching schedule.. %s');
 spinner.setSpinnerString('|/-\\');
 
-var parm1 = process.argv[2];
-var parm2 = process.argv[3];
+// Setup commandline arguments
+options.version(pjson.version)
+       .description(pjson.description + ".")
+       .usage('[options] <studentID>')
+       .option('-f, --force', 'Force download (even if cached)')
+       .option('-c, --clear-cache', 'Clear the schedule cache (no studentID required)')
+       .option('-l, --latex', 'Output schedule as LaTeX')
+       .option('-w, --width <width>', 'Set the output schedule width (0 = console width)', parseInt);
 
-if (parm1 == "--clear-cache") {
+// Addition help
+options.on('--help', function()
+{
+    console.log('  Examples:');
+    console.log('');
+    console.log('    $ auskema <studentID> \t\t# Fetches the schedule for the given id');
+    console.log('    $ auskema --force <studentID> \t# Fetches the schedule for the given id even if it is cached');
+    console.log('    $ auskema --clear-cache \t\t# Clears the schedule cache');
+    console.log('    $ auskema -w 0 <studentID> \t\t# Fix output width to terminal width');
+    console.log('    $ auskema -l <studentID> | lualatex # Generate schedule as pdf file');
+    console.log('');
+    console.log("NOTE: Further preferences can be changed in the config.json file in the app main folder");
+    console.log('--> By Nauer (Modified by Skeen)');
+    console.log('');
+});
+
+options.parse(process.argv);
+
+if (options.clearCache) {
     clearCache();
     return;
 }
 
-if(parm1 == undefined){
-	printUsage();
-	return;
-}
-
 //Get student id from parm
-var studentId = parm1
-
-if (process.argv[3] == "--force")
-    var forceReCache = true;
+var studentId = (options.args[0] || '');
 
 //Check input and fetch schedule
 if (studentId.length >= prefs.studentid_min_length) {
     var source = getSource(prefs.default_source);
 
 
-    if (doesCacheExist(studentId) && !isCacheOutdated(studentId) && prefs.cache && !forceReCache) {
+    if (doesCacheExist(studentId) && !isCacheOutdated(studentId) && prefs.cache && !options.force) {
         printTable(source.parseData(readCache(studentId)));
         console.log(getTimeStamp() + ': ' + studentId + ' loaded from cache.');
     } else {
@@ -72,29 +89,11 @@ if (studentId.length >= prefs.studentid_min_length) {
     }
 
 } else if (studentId.length == 0) {
-    printUsage();
+    options.help();
 } else {
     console.warn(getTimeStamp() + ": Invalid student id.");
-    printUsage();
+    options.help();
 }
-
-/*
- *	Usage print
- */
-
-function printUsage() {
-	console.log("\nAuSkema version " + pjson.version + " by Nauer \n" + pjson.description + "\n");
-	console.log("Usage: auskema <studentID> <option>\n");
-	console.log("Where <studentID> is your au student id ex. 201512345\n");
-	console.log("And <option> can be one of:");
-	console.log("--force, --clear-cache\n");
-	console.log("auskema <studentID> \t\tFetches the schedule for the given id");
-	console.log("auskema <studentID> --force \tFetches the schedule for the given id even if it is cached");
-	console.log("auskema --clear-cache  \t\tclears the schedule cache\n");
-	console.log("NOTE: --clear-cache do not need a student id. Further preferences can be changed in the config.json file in the app main folder");
-
-}
-
 
 /*
  *	Helping methodes
@@ -116,9 +115,77 @@ function fetchSchedule(url, callback) {
     });
 }
 
+// Output to the console
+function outputter_console(days)
+{
+    var table_opt = prefs.table_options;
+    if(options.width != undefined)
+    {
+        // process.stdout.columns may be undefined
+        options.width = options.width || process.stdout.columns;
+        if(options.width != undefined)
+        {
+            var frame_width = 7; // 5xinternal_borders 2xouter_borders
+            var time_width = 7;  // -XX:XX-
+            var data_width = Math.floor((options.width - frame_width - time_width) / 5);
+            table_opt.colWidths = [time_width,data_width,data_width,data_width,data_width,data_width];
+        }
+    }
+    var table = new Table(table_opt);
+
+    table.push(days);
+
+    return [function(obj, i)
+    {
+        // Push the hour + lecture row
+        table.push(days.map(function(_, j)
+        {
+            return (obj[i][j] || '');
+        }));
+    }, function()
+    {
+        console.log(table.toString());
+    }];
+}
+
+// Output as LaTeX
+function outputter_latex(days)
+{
+    var write = function(str)
+    {
+        process.stdout.write(str);
+    }
+
+    console.log("\\documentclass[crop]{standalone}");
+    console.log("\\usepackage{makecell}");
+    console.log("\\usepackage[utf8]{inputenc}");
+    console.log("\\usepackage[T1]{fontenc}");
+    console.log("\\begin{document}");
+    write("\\begin{tabular}{");
+    console.log('|l|' + Array(days.length+1).join('c|') + "} \\hline");
+
+    console.log(days.join(" & "));
+    console.log(" \\\\ \\hline");
+
+    return [function(obj, i)
+    {
+        // Push the hour + lecture row
+        console.log(days.map(function(_, j)
+        {
+            return "\\makecell[l]{" + (obj[i][j] || '').replace(/\n/g,'\\\\ ') + "}";
+        }).join(" & "));
+        console.log(" \\\\ \\hline");
+    }, function()
+    {
+        console.log("\\end{tabular}");
+        console.log("\\end{document}");
+    }];
+}
+ 
+
 function printTable(json) {
 
-    var table = new Table(prefs.table_options);
+    var outputter = (options.latex ? outputter_latex : outputter_console);
 
     // Generate sparse object representation, and find first and last lecture time
     var obj = {};
@@ -132,7 +199,8 @@ function printTable(json) {
     }, [24, 0]);
 
     var days = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-    table.push(days);
+
+    var [looper,finish] = outputter(days);
 
     //Insert rows
     for (var i = first; i < last; i++) 
@@ -140,14 +208,9 @@ function printTable(json) {
         // Fill in hour format
         obj[i] = (obj[i] || {});
         obj[i][0] = ('0' + i).substr(-2) + ':00';
-        // Push the hour + lecture row
-        table.push(days.map(function(_, j)
-        {
-            return (obj[i][j] || '');
-        }));
+        looper(obj, i)
     };
-
-    console.log(table.toString());
+    finish();
 }
 
 function getSource(name) {

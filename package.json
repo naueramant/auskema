@@ -16,6 +16,7 @@
   "dependencies": {
     "cli-spinner": "^0.2.5",
     "cli-table": "^0.3.1",
+    "commander": "^2.9.0",
     "console.table": "^0.4.0",
     "fs-extra": "^0.26.7",
     "request": "^2.69.0",

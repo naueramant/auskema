@@ -2,7 +2,7 @@
 	"cache": true,
 	"cache_time_minutes": 360, 
 
-    "studentid_min_length": 9,
+    "studentid_min_length": 8,
 
     "default_source": "lukasj",
 

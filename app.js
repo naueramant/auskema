@@ -120,30 +120,31 @@ function printTable(json) {
 
     var table = new Table(prefs.table_options);
 
-    table.push(
-        ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-    );
-
-    //Generate hour rows
-    var hours = [];
-    for (var i = 8; i <= 16; i++) {
-        var digit = i;
-        if (digit.length == 1)
-            digit = '0' + digit;
-
-        hours.push([digit + ':00', '', '', '', '', ''])
-    }
-
-    //Insert coures
-    for (var i = 0; i < json.length; i++) {
-        for (var j = json[i].from; j < json[i].to; j++) {
-            (hours[j - 8])[json[i].day] = json[i].text;
+    // Generate sparse object representation, and find first and last lecture time
+    var obj = {};
+    var [first, last] = json.reduce(function([min,max],elem)
+    {
+        for (var j = elem.from; j < elem.to; j++) {
+            obj[j] = (obj[j] || {});
+            obj[j][elem.day] = elem.text;
         }
-    };
+        return [Math.min(min, elem.from), Math.max(max, elem.to)];
+    }, [24, 0]);
+
+    var days = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    table.push(days);
 
     //Insert rows
-    for (var i = 0; i < hours.length; i++) {
-        table.push(hours[i]);
+    for (var i = first; i < last; i++) 
+    {
+        // Fill in hour format
+        obj[i] = (obj[i] || {});
+        obj[i][0] = ('0' + i).substr(-2) + ':00';
+        // Push the hour + lecture row
+        table.push(days.map(function(_, j)
+        {
+            return (obj[i][j] || '');
+        }));
     };
 
     console.log(table.toString());

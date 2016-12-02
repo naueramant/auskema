@@ -39,8 +39,11 @@ options.on('--help', function()
     console.log('    $ auskema -w 0 <studentID> \t\t# Fix output width to terminal width');
     console.log('    $ auskema -l <studentID> | lualatex # Generate schedule as pdf file');
     console.log('');
-    console.log("NOTE: Further preferences can be changed in the config.json file in the app main folder");
-    console.log('--> By Nauer (Modified by Skeen)');
+    console.log('   NOTE: Further preferences can be changed in the config.json file in the app main folder');
+    console.log('');
+    console.log('Contributors');
+    console.log('   naueramant');
+    console.log('   Skeen');
     console.log('');
 });
 
